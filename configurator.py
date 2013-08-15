@@ -1,52 +1,61 @@
 from os import path, walk, getcwd
 from copy import deepcopy
-from yaml import load, dump
+from yaml import load
 
-try:
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-    from yaml import Loader, Dumper
+YAML_FORMATS = ["yml", "yaml"]
+BASE_CONFIG = "defaults"
 
 def find_files_by_names(directory, names):
-    """ Walks a directory structure returning filepaths named by provided names """
+    """ walks a directory structure
+        returning filepaths named by provided names """
     files = []
     for rootpath, dirs, filenames in walk(directory):
-        filenames = [path.join(rootpath, name) for name in names]
+        filenames = map(lambda name: path.join(rootpath, name), names)
         files += filter(lambda f: path.isfile(f), filenames)
     return files
 
-def with_exts(filename, exts):
-    return ["{0}.{1}".format(filename, ext) for ext in exts]
+def filenames_by_exts(exts, *filenames):
+    """ given ['json', 'ini'], configurator returns
+        ['configurator.json', 'configurator.ini'] """
+    fnames = []
+    for filename in filenames:
+        fnames += map(lambda ext: "{0}.{1}".format(filename, ext), exts)
+    return fnames
 
-def find_configs_paths(*envs):
-    yamls = ["yml", "yaml"]
-    filenames = with_exts("defaults", yamls)
-    for env in envs:
-        filenames += with_exts(env, yamls)
-    return find_files_by_names('.', filenames)
+def find_config_paths(basedir, *environments):
+    """ search for filenames matching the config format """
+    filenames = filenames_by_exts(YAML_FORMATS, BASE_CONFIG, *environments)
+    return find_files_by_names(basedir, filenames)
 
-def filepath_to_namespace(path, basedir="."):
+def filepath_to_namespace(path, basedir):
+    """ given ./foo/bar/baz.yml returns ['foo', 'bar'] """
     return path[len(basedir):].lstrip("/").split("/")[:-1]
 
-def load_namespaced_yaml(path, basedir="."):
+def namespace_node(namespace, node):
+    """ given ['a', 'b', 'c'], 23 returns {a: {b: {c: 23}}} """
+    last = len(namespace) - 1
+    obj = {}
+    ref = obj
+    for i, name in enumerate(namespace):
+        if i == last:
+            ref[name] = node
+        else:
+            ref[name] = {}
+        ref = ref[name]
+    return obj
+
+def load_namespaced_yaml(path, basedir):
     """ Loads a yaml document namespacing it by the directory structure
         relative to basedir """
-    config = load(file(path, 'r'))
-    if config is None:
-        config = {}
+    config = load(file(path, 'r')) or {}
     namespace = filepath_to_namespace(path, basedir)
     if len(namespace) > 0:
-        obj = {}
-        current = obj
-        for index, part in enumerate(namespace):
-            if index + 1 == len(namespace):
-                current[part] = config
-            else:
-                current[part] = {}
-            current = current[part]
-        return obj
+        return namespace_node(namespace, config)
     else:
         return config
+
+def paths_to_configs(paths, basedir):
+    return map(lambda path: load_namespaced_yaml(path, basedir), paths)
 
 def deep_merge(a, b):
     """ recursively merges dict's
@@ -56,15 +65,13 @@ def deep_merge(a, b):
     result = deepcopy(a)
     for k, v in b.iteritems():
         if k in result and isinstance(result[k], dict):
-                result[k] = deep_merge(result[k], v)
+            result[k] = deep_merge(result[k], v)
         else:
             result[k] = deepcopy(v)
     return result
 
-def paths_to_configs(paths):
-    return [load_namespaced_yaml(path) for path in paths]
-
 def merge_configs(configs):
+    """ more like partial reduce deep_merge amirite """
     result = {}
     for config in configs:
         result = deep_merge(result, config)
@@ -72,6 +79,7 @@ def merge_configs(configs):
 
 if __name__ == "__main__":
     print("Loading up hyper kernels...")
-    paths = find_configs_paths()
-    configs = paths_to_configs(paths)
+    basedir = getcwd()
+    paths = find_config_paths(basedir)
+    configs = paths_to_configs(paths, basedir)
     print(merge_configs(configs))
