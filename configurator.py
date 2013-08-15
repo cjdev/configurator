@@ -7,17 +7,17 @@ from argparse import ArgumentParser
 YAML_FORMATS = ["yml", "yaml"]
 BASE_CONFIG = "base"
 
+
 def get_arg_parser():
-  parser = ArgumentParser(description="Configurate your self!")
+    parser = ArgumentParser(description="Configurate your self!")
 
-  parser.add_argument(
-      "-d", "--dir",
-      help="Directory containing configuration hierarchy",
-      default=getcwd()
-      )
+    parser.add_argument(
+        "-d", "--dir",
+        help="Directory containing configuration hierarchy",
+        default=getcwd()
+        )
 
-  return parser
-
+    return parser
 
 
 def find_files_by_names(directory, names):
