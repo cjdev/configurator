@@ -1,0 +1,3 @@
+directory: /home/user/db
+strict: on
+format: json

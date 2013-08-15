@@ -10,20 +10,38 @@ YAML_FORMATS = ["yml", "yaml"]
 BASE_CONFIG = "base"
 
 
+def get_defaults():
+    defaults = {
+        "strict": True,
+        "directory": getcwd(),
+        "format": "yaml",
+        "environments": []
+    }
+
+    config_file = path.expanduser("~/.configurator")
+
+    if path.isfile(config_file):
+        with open(config_file) as f:
+            user_config = yaml.load(f)
+
+        defaults.update(user_config)
+        return defaults
+    else:
+        return defaults
+
+
 def get_arg_parser():
     parser = ArgumentParser(description="Configurate your self!")
 
     parser.add_argument(
         "-d", "--directory",
         help="Directory containing configuration hierarchy",
-        default=getcwd(),
         metavar="DIR"
         )
 
     parser.add_argument(
-        "-e", "--environment",
+        "-e", "--environments",
         help="Load environment specific overrides",
-        default=[],
         nargs="+",
         metavar="ENV"
         )
@@ -32,7 +50,6 @@ def get_arg_parser():
         "--format",
         help="Output Format",
         choices=["json", "yaml"],
-        default="yaml"
         )
 
     parser.add_argument(
@@ -49,7 +66,7 @@ def get_arg_parser():
         action="store_false"
         )
 
-    parser.set_defaults(strict=True)
+    parser.set_defaults(**get_defaults())
 
     return parser
 
@@ -161,7 +178,7 @@ def merge_configs(configs):
 if __name__ == "__main__":
     args = get_arg_parser().parse_args()
     basedir = args.directory
-    envs = args.environment
+    envs = args.environments
     paths = find_config_paths(basedir, *envs)
     configs = paths_to_configs(paths, basedir)
     config = merge_configs(configs)
