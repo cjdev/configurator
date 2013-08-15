@@ -1,10 +1,23 @@
 from os import path, walk, getcwd
 from copy import deepcopy
 from yaml import load
+from argparse import ArgumentParser
 
 
 YAML_FORMATS = ["yml", "yaml"]
 BASE_CONFIG = "base"
+
+def get_arg_parser():
+  parser = ArgumentParser(description="Configurate your self!")
+
+  parser.add_argument(
+      "-d", "--dir",
+      help="Directory containing configuration hierarchy",
+      default=getcwd()
+      )
+
+  return parser
+
 
 
 def find_files_by_names(directory, names):
@@ -90,7 +103,8 @@ def merge_configs(configs):
 
 
 if __name__ == "__main__":
-    basedir = getcwd()
+    args = get_arg_parser().parse_args()
+    basedir = args.dir
     paths = find_config_paths(basedir)
     configs = paths_to_configs(paths, basedir)
     config = merge_configs(configs)
