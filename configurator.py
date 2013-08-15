@@ -26,7 +26,34 @@ def get_arg_parser():
         metavar="ENV"
         )
 
+    parser.add_argument(
+        "--strict",
+        help="Disallow NULL values in configuration (default)",
+        dest="strict",
+        action="store_true"
+        )
+
+    parser.add_argument(
+        "--not-strict",
+        help="Allow NULL values in configuration",
+        dest="strict",
+        action="store_false"
+        )
+
+    parser.set_defaults(strict=True)
+
     return parser
+
+
+def validate_structure(d):
+    for k, v in d.iteritems():
+        if v is None:
+            return False
+        elif isinstance(v, dict):
+            if not validate_structure(v):
+                return False
+
+    return True
 
 
 def find_files_by_names(directory, names):
@@ -118,6 +145,10 @@ if __name__ == "__main__":
     paths = find_config_paths(basedir, *envs)
     configs = paths_to_configs(paths, basedir)
     config = merge_configs(configs)
+
+    if args.strict:
+        assert validate_structure(config), \
+            "Configuration may not contain NULL values"
 
     from pprint import pprint
     pprint(config)
