@@ -12,9 +12,18 @@ def get_arg_parser():
     parser = ArgumentParser(description="Configurate your self!")
 
     parser.add_argument(
-        "-d", "--dir",
+        "-d", "--directory",
         help="Directory containing configuration hierarchy",
-        default=getcwd()
+        default=getcwd(),
+        metavar="DIR"
+        )
+
+    parser.add_argument(
+        "-e", "--environment",
+        help="Load environment specific overrides",
+        default=[],
+        nargs="+",
+        metavar="ENV"
         )
 
     return parser
@@ -104,8 +113,9 @@ def merge_configs(configs):
 
 if __name__ == "__main__":
     args = get_arg_parser().parse_args()
-    basedir = args.dir
-    paths = find_config_paths(basedir)
+    basedir = args.directory
+    envs = args.environment
+    paths = find_config_paths(basedir, *envs)
     configs = paths_to_configs(paths, basedir)
     config = merge_configs(configs)
 
