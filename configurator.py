@@ -1,8 +1,10 @@
+#!/usr/bin/env python
+
 from os import path, walk, getcwd
 from copy import deepcopy
-from yaml import load
 from argparse import ArgumentParser
-
+import yaml
+import json
 
 YAML_FORMATS = ["yml", "yaml"]
 BASE_CONFIG = "base"
@@ -27,6 +29,13 @@ def get_arg_parser():
         )
 
     parser.add_argument(
+        "--format",
+        help="Output Format",
+        choices=["json", "yaml"],
+        default="yaml"
+        )
+
+    parser.add_argument(
         "--strict",
         help="Disallow NULL values in configuration (default)",
         dest="strict",
@@ -44,6 +53,15 @@ def get_arg_parser():
 
     return parser
 
+def get_formatter(args):
+    if args.format == "json":
+        def json_dumper(obj):
+            return json.dumps(obj,sort_keys=True)
+        return json_dumper
+    else:
+        def yaml_dumper(obj):
+            return yaml.dump(obj,default_flow_style=False)
+        return yaml_dumper 
 
 def validate_structure(d):
     for k, v in d.iteritems():
@@ -103,7 +121,7 @@ def namespace_node(namespace, node):
 def load_namespaced_yaml(path, basedir):
     """ Loads a yaml document namespacing it by the directory structure
         relative to basedir """
-    config = load(file(path, 'r')) or {}
+    config = yaml.load(file(path, "r")) or {}
     namespace = filepath_to_namespace(path, basedir)
     if len(namespace) > 0:
         return namespace_node(namespace, config)
@@ -150,5 +168,5 @@ if __name__ == "__main__":
         assert validate_structure(config), \
             "Configuration may not contain NULL values"
 
-    from pprint import pprint
-    pprint(config)
+    print get_formatter(args)(config)
+
