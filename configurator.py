@@ -3,7 +3,7 @@ from copy import deepcopy
 from yaml import load
 
 YAML_FORMATS = ["yml", "yaml"]
-BASE_CONFIG = "defaults"
+BASE_CONFIG = "base"
 
 def find_files_by_names(directory, names):
     """ walks a directory structure
