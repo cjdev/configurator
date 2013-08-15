@@ -45,17 +45,22 @@ web:
 
 ## Installation
 
-The recommended way to use configuration is to get a hold of one of the pre-compiled linux binaries.
-Currently tested on Debian 32 and 64bit systems
+The recommended way to use configuration is to get a hold of one of the [pre-compiled linux binaries](https://github.com/cjdev/configurator/releases).
+
+Currently tested on Debian 32 (i686) and 64 (x86_64) systems
 
 ### Manual installation
 
     pip install -r requirements.txt
     python configurator.py
+    alias configurator="python $PWD/configurator.py"
 
 ## Usage
 
-If you have the binary distribution simply include it somewhere on your path and have fun.
+Assuming configurator is installed and on your path:
+
+    configurator
+    # runs configurator with your default configuration (cwd, yaml, base)
 
     configurator -h
     # displays help text
@@ -63,15 +68,13 @@ If you have the binary distribution simply include it somewhere on your path and
     configurator --format json --directory example/configs -e prod | python -m json.tool
     # pretty prints the prod configs from the example/configs directory as json
 
-    configurator
-    # runs configurator with your default configuration (cwd, yaml, base)
-
     configurator -d example/configs -e null
     # blows up because null environment contains a null value
 
     configurator -d example/configs -e null --not-strict
     # allows null values
 
+Check out the [examples](https://github.com/cjdev/configurator/tree/master/example) for an idea of how to get started managing your own configs.
 
 ### Configuration File
 
