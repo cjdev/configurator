@@ -53,15 +53,17 @@ def get_arg_parser():
 
     return parser
 
+
 def get_formatter(args):
     if args.format == "json":
         def json_dumper(obj):
-            return json.dumps(obj,sort_keys=True)
+            return json.dumps(obj, sort_keys=True)
         return json_dumper
     else:
         def yaml_dumper(obj):
-            return yaml.dump(obj,default_flow_style=False)
-        return yaml_dumper 
+            return yaml.dump(obj, default_flow_style=False)
+        return yaml_dumper
+
 
 def validate_structure(d):
     for k, v in d.iteritems():
@@ -169,4 +171,3 @@ if __name__ == "__main__":
             "Configuration may not contain NULL values"
 
     print get_formatter(args)(config)
-
