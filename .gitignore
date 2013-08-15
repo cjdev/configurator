@@ -1,0 +1,6 @@
+/dist-utils
+/dist
+/build
+*.spec
+*.log
+*.pyc
