@@ -71,12 +71,13 @@ def get_arg_parser():
     parser.add_argument(
         "-p", "--port",
         help="Port to start the configurator server on",
+        default=5000,
         type=int,
         )
 
     parser.add_argument(
         "--serve",
-        help="start a configurator server instead of returning a document",
+        help="start a configurator server with the given settings",
         action="store_true",
         default=False
         )
@@ -214,13 +215,20 @@ if __name__ == "__main__":
 
     if args.serve:
         app = Flask("configurator")
-        app.add_url_rule('/', view_func=ConfigView.as_view('config', formatter, basedir, *envs))
-        app.run()
+        app.add_url_rule(
+            "/",
+            view_func=ConfigView.as_view(
+                "config",
+                formatter,
+                basedir,
+                *envs))
+
+        app.run(host="0.0.0.0", port=args.port)
     else:
         config = generate_config(basedir, *envs)
 
         if args.strict:
             assert validate_structure(config), \
-                    "Configuration may not contain NULL values"
+                "Configuration may not contain NULL values"
 
         print formatter(config)
