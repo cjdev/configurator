@@ -4,3 +4,4 @@
 *.spec
 *.log
 *.pyc
+lib/
