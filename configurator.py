@@ -3,6 +3,8 @@
 from os import path, walk, getcwd
 from copy import deepcopy
 from argparse import ArgumentParser
+from flask import Flask
+from flask.views import MethodView
 import yaml
 import json
 
@@ -64,6 +66,19 @@ def get_arg_parser():
         help="Allow NULL values in configuration",
         dest="strict",
         action="store_false"
+        )
+
+    parser.add_argument(
+        "-p", "--port",
+        help="Port to start the configurator server on",
+        type=int,
+        )
+
+    parser.add_argument(
+        "--serve",
+        help="start a configurator server instead of returning a document",
+        action="store_true",
+        default=False
         )
 
     parser.set_defaults(**get_defaults())
@@ -175,16 +190,37 @@ def merge_configs(configs):
     return result
 
 
+def generate_config(basedir, *envs):
+    paths = find_config_paths(basedir, *envs)
+    configs = paths_to_configs(paths, basedir)
+    return merge_configs(configs)
+
+
+class ConfigView(MethodView):
+    def __init__(self, formatter, basedir, *envs):
+        self.basedir = basedir
+        self.envs = envs
+        self.formatter = formatter
+
+    def get(self):
+        return self.formatter(generate_config(self.basedir, *self.envs))
+
+
 if __name__ == "__main__":
     args = get_arg_parser().parse_args()
     basedir = args.directory
     envs = args.environments
-    paths = find_config_paths(basedir, *envs)
-    configs = paths_to_configs(paths, basedir)
-    config = merge_configs(configs)
+    formatter = get_formatter(args)
 
-    if args.strict:
-        assert validate_structure(config), \
-            "Configuration may not contain NULL values"
+    if args.serve:
+        app = Flask("configurator")
+        app.add_url_rule('/', view_func=ConfigView.as_view('config', formatter, basedir, *envs))
+        app.run()
+    else:
+        config = generate_config(basedir, *envs)
 
-    print get_formatter(args)(config)
+        if args.strict:
+            assert validate_structure(config), \
+                    "Configuration may not contain NULL values"
+
+        print formatter(config)
