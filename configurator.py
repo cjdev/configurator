@@ -3,7 +3,7 @@
 from os import path, walk, getcwd
 from copy import deepcopy
 from argparse import ArgumentParser
-from flask import Flask
+from flask import Flask, request
 from flask.views import MethodView
 import yaml
 import json
@@ -204,7 +204,14 @@ class ConfigView(MethodView):
         self.formatter = formatter
 
     def get(self):
-        return self.formatter(generate_config(self.basedir, *self.envs))
+        env_arg = request.args.get('env')
+
+        if env_arg is None:
+            envs = self.envs
+        else:
+            envs = env_arg.split(",")
+
+        return self.formatter(generate_config(self.basedir, *envs))
 
 
 if __name__ == "__main__":
