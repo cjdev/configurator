@@ -87,14 +87,18 @@ def get_arg_parser():
     return parser
 
 
-def get_formatter(args):
-    if args.format == "json":
-        def json_dumper(obj):
-            return json.dumps(obj, sort_keys=True)
+def json_dumper(obj):
+    return json.dumps(obj, sort_keys=True)
+
+
+def yaml_dumper(obj):
+    return yaml.dump(obj, default_flow_style=False)
+
+
+def get_formatter(format):
+    if format == "json":
         return json_dumper
     else:
-        def yaml_dumper(obj):
-            return yaml.dump(obj, default_flow_style=False)
         return yaml_dumper
 
 
@@ -198,27 +202,32 @@ def generate_config(basedir, *envs):
 
 
 class ConfigView(MethodView):
-    def __init__(self, formatter, basedir, *envs):
+    def __init__(self, format, basedir, *envs):
         self.basedir = basedir
         self.envs = envs
-        self.formatter = formatter
+        self.format = format
 
-    def get(self):
+    def _get_envs(self):
         env_arg = request.args.get('env')
 
         if env_arg is None:
-            envs = self.envs
+            return self.envs
         else:
-            envs = env_arg.split(",")
+            return env_arg.split(",")
 
-        return self.formatter(generate_config(self.basedir, *envs))
+    def _get_format(self):
+        return request.headers.get('accept', "/" + self.format).split("/")[1]
+
+    def get(self):
+        envs = self._get_envs()
+        return get_formatter(
+            self._get_format())(generate_config(self.basedir, *envs))
 
 
 if __name__ == "__main__":
     args = get_arg_parser().parse_args()
     basedir = args.directory
     envs = args.environments
-    formatter = get_formatter(args)
 
     if args.serve:
         app = Flask("configurator")
@@ -226,13 +235,14 @@ if __name__ == "__main__":
             "/",
             view_func=ConfigView.as_view(
                 "config",
-                formatter,
+                args.format,
                 basedir,
                 *envs))
 
         app.run(host="0.0.0.0", port=args.port)
     else:
         config = generate_config(basedir, *envs)
+        formatter = get_formatter(args.format)
 
         if args.strict:
             assert validate_structure(config), \
