@@ -57,7 +57,20 @@ Currently tested on Debian 32 (i686) and 64 (x86_64) systems
 
 ## Usage
 
-Assuming configurator is installed and on your path:
+Configurator can either be used as a command line utility or as a web service.
+
+#### web
+
+    configurator --serve -p 12345
+    # * Running on http://0.0.0.0:12345/
+
+    curl localhost:12345?env=prod
+    # get production environment config
+
+    curl -H "Accept: application/json" localhost:12345 
+    # get the default configs as json
+
+#### cli
 
     configurator
     # runs configurator with your default configuration (cwd, yaml, base)
@@ -67,12 +80,6 @@ Assuming configurator is installed and on your path:
 
     configurator --format json --directory example/configs -e prod | python -m json.tool
     # pretty prints the prod configs from the example/configs directory as json
-
-    configurator -d example/configs -e null
-    # blows up because null environment contains a null value
-
-    configurator -d example/configs -e null --not-strict
-    # allows null values
 
 Check out the [examples](https://github.com/cjdev/configurator/tree/master/example) for an idea of how to get started managing your own configs.
 
