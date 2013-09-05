@@ -1,16 +1,8 @@
 #!/usr/bin/env python
-
-from os import path, walk, getcwd
-from copy import deepcopy
 from argparse import ArgumentParser
-from flask import Flask, request
-from flask.views import MethodView
-import yaml
-import json
-
-YAML_FORMATS = ["yml", "yaml"]
-BASE_CONFIG = "base"
-
+from os import path, getcwd
+from web import WebApi
+from parser import Configurator
 
 def get_defaults():
     defaults = {
@@ -87,165 +79,16 @@ def get_arg_parser():
     return parser
 
 
-def json_dumper(obj):
-    return json.dumps(obj, sort_keys=True)
-
-
-def yaml_dumper(obj):
-    return yaml.dump(obj, default_flow_style=False)
-
-
-def get_formatter(format):
-    if format == "json":
-        return json_dumper
-    else:
-        return yaml_dumper
-
-
-def validate_structure(d):
-    for k, v in d.iteritems():
-        if v is None:
-            return False
-        elif isinstance(v, dict):
-            if not validate_structure(v):
-                return False
-
-    return True
-
-
-def find_files_by_names(directory, names):
-    """ walks a directory structure
-        returning filepaths named by provided names """
-    files = []
-    for rootpath, dirs, filenames in walk(directory):
-        filenames = map(lambda name: path.join(rootpath, name), names)
-        files += filter(lambda f: path.isfile(f), filenames)
-    return files
-
-
-def filenames_by_exts(exts, *filenames):
-    """ given ['json', 'ini'], configurator returns
-        ['configurator.json', 'configurator.ini'] """
-    fnames = []
-    for filename in filenames:
-        fnames += map(lambda ext: "{0}.{1}".format(filename, ext), exts)
-    return fnames
-
-
-def find_config_paths(basedir, *environments):
-    """ search for filenames matching the config format """
-    filenames = filenames_by_exts(YAML_FORMATS, BASE_CONFIG, *environments)
-    return find_files_by_names(basedir, filenames)
-
-
-def filepath_to_namespace(path, basedir):
-    """ given ./foo/bar/baz.yml returns ['foo', 'bar'] """
-    return path[len(basedir):].lstrip("/").split("/")[:-1]
-
-
-def namespace_node(namespace, node):
-    """ given ['a', 'b', 'c'], 23 returns {a: {b: {c: 23}}} """
-    last = len(namespace) - 1
-    obj = {}
-    ref = obj
-    for i, name in enumerate(namespace):
-        if i == last:
-            ref[name] = node
-        else:
-            ref[name] = {}
-        ref = ref[name]
-    return obj
-
-
-def load_namespaced_yaml(path, basedir):
-    """ Loads a yaml document namespacing it by the directory structure
-        relative to basedir """
-    config = yaml.load(file(path, "r")) or {}
-    namespace = filepath_to_namespace(path, basedir)
-    if len(namespace) > 0:
-        return namespace_node(namespace, config)
-    else:
-        return config
-
-
-def paths_to_configs(paths, basedir):
-    return map(lambda path: load_namespaced_yaml(path, basedir), paths)
-
-
-def deep_merge(a, b):
-    """ recursively merges dicts """
-    # borrowed from
-    # http://www.xormedia.com/recursively-merge-dictionaries-in-python/
-    if not isinstance(b, dict):
-        return b
-    result = deepcopy(a)
-    for k, v in b.iteritems():
-        if k in result and isinstance(result[k], dict):
-            result[k] = deep_merge(result[k], v)
-        else:
-            result[k] = deepcopy(v)
-    return result
-
-
-def merge_configs(configs):
-    """ more like partial reduce deep_merge amirite """
-    result = {}
-    for config in configs:
-        result = deep_merge(result, config)
-    return result
-
-
-def generate_config(basedir, *envs):
-    paths = find_config_paths(basedir, *envs)
-    configs = paths_to_configs(paths, basedir)
-    return merge_configs(configs)
-
-
-class ConfigView(MethodView):
-    def __init__(self, format, basedir, *envs):
-        self.basedir = basedir
-        self.envs = envs
-        self.format = format
-
-    def _get_envs(self):
-        env_arg = request.args.get('env')
-
-        if env_arg is None:
-            return self.envs
-        else:
-            return env_arg.split(",")
-
-    def _get_format(self):
-        return request.headers.get('accept', "/" + self.format).split("/")[1]
-
-    def get(self):
-        envs = self._get_envs()
-        return get_formatter(
-            self._get_format())(generate_config(self.basedir, *envs))
-
-
 if __name__ == "__main__":
     args = get_arg_parser().parse_args()
-    basedir = args.directory
-    envs = args.environments
 
     if args.serve:
-        app = Flask("configurator")
-        app.add_url_rule(
-            "/",
-            view_func=ConfigView.as_view(
-                "config",
-                args.format,
-                basedir,
-                *envs))
-
+        app = WebApi(args.format, args.directory, *args.environments)
         app.run(host="0.0.0.0", port=args.port)
     else:
-        config = generate_config(basedir, *envs)
-        formatter = get_formatter(args.format)
+        config = Configurator(args.format, args.directory, *args.environments)
 
         if args.strict:
-            assert validate_structure(config), \
-                "Configuration may not contain NULL values"
+            config.validate()
 
-        print formatter(config)
+        print config.serialize() 
