@@ -1,5 +1,4 @@
 from os import path, walk
-from sys import stderr
 from copy import deepcopy
 import yaml
 from jsonschema import validate
@@ -133,10 +132,6 @@ def parse_schemas(directory):
     return schemas
 
 
-def err(message):
-    print >> stderr, message
-
-
 class Configurator:
     def __init__(self, default_format, directory, *environments):
         self.default_format = default_format
@@ -149,7 +144,6 @@ class Configurator:
         if self.schemas:
             for key in self.schemas:
                 schema = self.schemas[key]
-                err("* validating {0} against:\n{1}".format(key, schema))
                 if key in self.config:
                     validate(self.config[key], schema)
 
