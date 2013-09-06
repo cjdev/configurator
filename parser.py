@@ -1,6 +1,8 @@
 from os import path, walk
+from sys import stderr
 from copy import deepcopy
 import yaml
+from jsonschema import validate
 import json
 
 YAML_FORMATS = ["yml", "yaml"]
@@ -121,14 +123,36 @@ def generate_config(directory, *envs):
     return merge_configs(configs)
 
 
+def parse_schemas(directory):
+    schemas = None
+    for fname in filenames_by_exts(YAML_FORMATS, 'schemas'):
+        fpath = path.join(directory, fname)
+        if path.isfile(fpath):
+            with open(fpath, 'r') as f:
+                schemas = yaml.load(f)
+    return schemas
+
+
+def err(message):
+    print >> stderr, message
+
+
 class Configurator:
     def __init__(self, default_format, directory, *environments):
         self.default_format = default_format
         self.directory = directory
         self.environments = environments
+        self.schemas = parse_schemas(directory)
         self.config = generate_config(directory, *environments)
 
     def validate(self):
+        if self.schemas:
+            for key in self.schemas:
+                schema = self.schemas[key]
+                err("* validating {0} against:\n{1}".format(key, schema))
+                if key in self.config:
+                    validate(self.config[key], schema)
+
         assert validate_structure(self.config), \
             "Configuration may not contain NULL values"
 
