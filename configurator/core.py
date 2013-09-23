@@ -150,9 +150,9 @@ class Configurator:
         assert validate_structure(self.config), \
             "Configuration may not contain NULL values"
 
-    def serialize(self, format=None):
-        if format:
-            formatter = get_formatter(format)
-        else:
-            formatter = get_formatter(self.default_format)
-        return formatter(self.config)
+    def serialize(self, config=None, format=None):
+        if config is None:
+            config = self.config
+        if format is None:
+            format = self.default_format
+        return get_formatter(format)(config)

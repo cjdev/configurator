@@ -10,7 +10,7 @@ class ConfigView(MethodView):
         self.format = format
 
     def __get_request_envs(self):
-        env_arg = request.args.get('env')
+        env_arg = request.args.get('config')
 
         if env_arg is None:
             return self.envs
@@ -20,11 +20,22 @@ class ConfigView(MethodView):
     def __get_request_format(self):
         return request.headers.get('accept', "/" + self.format).split("/")[1]
 
+    def __serialize(self, config):
+        node = request.args.get('node')
+
+        if node is None:
+            return config.serialize()
+        else:
+            cursor = config.config
+            for part in node.split('.'):
+                cursor = cursor[part]
+            return config.serialize(config=cursor)
+
     def get(self):
         environments = self.__get_request_envs()
         request_format = self.__get_request_format()
         config = Configurator(request_format, self.directory, *environments)
-        return config.serialize()
+        return self.__serialize(config)
 
 
 class WebApi:
