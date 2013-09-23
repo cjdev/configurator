@@ -4,8 +4,8 @@ Configurator is a simple configuration assembler for managing configuration acro
 
   - yaml as configuration language
   - flatfile database for easy tracking of configuration changes
-  - environmental mixins for extensible configuration (e.g: staging extends dev)
-  - simple validation against null configuration entries
+  - mixins for extensible configuration
+  - simple validation using json schemas
 
 ## How it works
 
@@ -22,10 +22,10 @@ Given a directory structure like:
         |-- base.yml
         `-- prod.yml
 
-We can see configurations defined for environments named `base`, `prod`, and `staging`.
+We can see configs named `base`, `prod`, and `staging`.
 
-When the special environment `base.yml` is found it provides default configuration for other environments to extend.
-Providing a base environment or providing environment specific overrides are optional; if neither are included the directory will show up as an empty object.
+When the special config `base.yml` is found it provides default configuration for other configs to extend.
+Providing a base config or config mixins are optional.
 Directory structure is completely free-form to allow for any shape of configuration and organization.
 
 If we ask for the configuration for staging we end up with a structure like:
@@ -45,7 +45,7 @@ web:
 
 ## Installation
 
-The recommended way to use configuration is to get a hold of one of the [pre-compiled linux binaries](https://github.com/cjdev/configurator/releases).
+The recommended way to use configurator is to get a hold of one of the [pre-compiled linux binaries](https://github.com/cjdev/configurator/releases).
 
 Currently tested on Debian 32 (i686) and 64 (x86_64) systems
 
@@ -64,10 +64,10 @@ Configurator can either be used as a command line utility or as a web service.
     configurator --serve -p 12345
     # * Running on http://0.0.0.0:12345/
 
-    curl localhost:12345?env=prod
-    # get production environment config
+    curl 'localhost:12345?config=prod&node=db.host'
+    # get the db host from the production config
 
-    curl -H "Accept: application/json" localhost:12345 
+    curl -H "Accept: application/json" localhost:12345
     # get the default configs as json
 
 #### cli
@@ -78,7 +78,7 @@ Configurator can either be used as a command line utility or as a web service.
     configurator -h
     # displays help text
 
-    configurator --format json --directory example/configs -e prod | python -m json.tool
+    configurator --format json --directory example/configs -c prod | python -m json.tool
     # pretty prints the prod configs from the example/configs directory as json
 
 Check out the [examples](https://github.com/cjdev/configurator/tree/master/example) for an idea of how to get started managing your own configs.
