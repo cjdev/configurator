@@ -1,11 +1,14 @@
 Configurator is a simple configuration assembler for managing configuration across environments.
 
+
 ## Features:
 
   - yaml as configuration language
+  - yaml or json as output formats
   - flatfile database for easy tracking of configuration changes
-  - mixins for extensible configuration
   - simple validation using json schemas
+  - mixins for extensible configuration
+  - http api for serving configs over a network
 
 ## How it works
 
@@ -81,9 +84,12 @@ Configurator can either be used as a command line utility or as a web service.
     configurator --format json --directory example/configs -c prod | python -m json.tool
     # pretty prints the prod configs from the example/configs directory as json
 
-Check out the [examples](https://github.com/cjdev/configurator/tree/master/example) for an idea of how to get started managing your own configs.
 
-### Configuration File
+### Uses
+
+Check out the [examples](https://github.com/cjdev/configurator/tree/master/example) for an idea of how to get started managing your own configs, including how to use configurator as a simple backend for ansible configuration.
+
+### Configurator configuration
 
 If a `~/.configurator` yaml document is found it will be loaded for default configuration.
 
