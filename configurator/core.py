@@ -53,9 +53,9 @@ def filenames_by_exts(exts, *filenames):
     return fnames
 
 
-def find_config_paths(directory, *environments):
+def find_config_paths(directory, *configs):
     """ search for filenames matching the config format """
-    filenames = filenames_by_exts(YAML_FORMATS, BASE_CONFIG, *environments)
+    filenames = filenames_by_exts(YAML_FORMATS, BASE_CONFIG, *configs)
     return find_files_by_names(directory, filenames)
 
 
@@ -116,8 +116,8 @@ def merge_configs(configs):
     return result
 
 
-def generate_config(directory, *envs):
-    paths = find_config_paths(directory, *envs)
+def generate_config(directory, *configs):
+    paths = find_config_paths(directory, *configs)
     configs = paths_to_configs(paths, directory)
     return merge_configs(configs)
 
@@ -133,12 +133,12 @@ def parse_schemas(directory):
 
 
 class Configurator:
-    def __init__(self, default_format, directory, *environments):
+    def __init__(self, default_format, directory, *configs):
         self.default_format = default_format
         self.directory = directory
-        self.environments = environments
+        self.configs = configs
         self.schemas = parse_schemas(directory)
-        self.config = generate_config(directory, *environments)
+        self.config = generate_config(directory, *configs)
 
     def validate(self):
         if self.schemas:

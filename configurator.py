@@ -8,10 +8,10 @@ if __name__ == "__main__":
     args = parse_args()
 
     if args.serve:
-        app = WebApi(args.format, args.directory, *args.environments)
+        app = WebApi(args.format, args.directory, *args.configs)
         app.run(host="0.0.0.0", port=args.port)
     else:
-        config = Configurator(args.format, args.directory, *args.environments)
+        config = Configurator(args.format, args.directory, *args.configs)
 
         if args.strict:
             config.validate()

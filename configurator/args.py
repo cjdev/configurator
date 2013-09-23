@@ -7,7 +7,7 @@ def get_defaults():
         "strict": True,
         "directory": getcwd(),
         "format": "yaml",
-        "environments": []
+        "configs": []
     }
 
     config_file = path.expanduser("~/.configurator")
@@ -32,10 +32,10 @@ def get_arg_parser():
         )
 
     parser.add_argument(
-        "-e", "--environments",
-        help="Load environment specific overrides",
+        "-c", "--configs",
+        help="Load specific configs",
         nargs="+",
-        metavar="ENV"
+        metavar="CONFIG"
         )
 
     parser.add_argument(
@@ -46,14 +46,14 @@ def get_arg_parser():
 
     parser.add_argument(
         "--strict",
-        help="Disallow NULL values in configuration (default)",
+        help="Validate values in configuration (default)",
         dest="strict",
         action="store_true"
         )
 
     parser.add_argument(
         "--not-strict",
-        help="Allow NULL values in configuration",
+        help="Don't validate values in configuration",
         dest="strict",
         action="store_false"
         )
