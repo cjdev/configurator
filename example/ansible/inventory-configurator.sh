@@ -9,8 +9,13 @@
 
 set -e
 
-# assuming we have configurator -d ~/path/to/ansible/host/configs --serve -p 5678
-CONFIGURATOR=http://localhost:5678
+if [ -v CONFIG ]; then
+    declare -x CONFIG=base
+else
+
+if [ -v CONFIGURATOR ]; then
+    declare -x CONFIGURATOR=http://localhost:5000
+else
 
 case "$1" in
 
@@ -18,12 +23,8 @@ case "$1" in
     # we must resepond to --list with our configs json
     --list)
         # since there is no other input
-        # so we must rely on runtime environment for our config name
-        if [ -v CONFIG ]; then
-            curl -sH "Accept: application/json" "${CONFIGURATOR}?config=${CONFIG}?node=ansible.inventory"
-        else
-            curl -sH "Accept: application/json" "${CONFIGURATOR}"
-        fi
+        # we must rely on runtime environment for our config name
+        curl -sH "Accept: application/json" "${CONFIGURATOR}?config=${CONFIG}&node=deployer.hosts"
     ;;
 
     *)
