@@ -80,7 +80,7 @@ def namespace_node(namespace, node):
 def load_namespaced_yaml(path, directory):
     """ Loads a yaml document namespacing it by the directory structure
         relative to directory """
-    config = yaml.load(file(path, "r")) or {}
+    config = yaml.load(file(path, "r"))
     namespace = filepath_to_namespace(path, directory)
     if len(namespace) > 0:
         return namespace_node(namespace, config)
