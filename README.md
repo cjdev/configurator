@@ -6,7 +6,6 @@ Configurator is a simple configuration assembler for managing configuration acro
   - yaml as configuration language
   - yaml or json as output formats
   - flatfile database for easy tracking of configuration changes
-  - simple validation using json schemas
   - mixins for extensible configuration
   - http api for serving configs over a network
 
