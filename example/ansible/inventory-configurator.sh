@@ -24,7 +24,7 @@ case "$1" in
     --list)
         # since there is no other input
         # we must rely on runtime environment for our config name
-        curl -sH "Accept: application/json" "${CONFIGURATOR}?config=${CONFIG}&node=deployer.hosts"
+        curl -sH "Accept: application/json" "${CONFIGURATOR}?config=${CONFIG}"
     ;;
 
     *)
