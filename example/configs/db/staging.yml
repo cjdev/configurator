@@ -1,3 +1,5 @@
 ---
-host: affordable-server.example.com
-debug: yes
+hosts:
+  - affordable-server.example.com
+vars:
+  debug: yes

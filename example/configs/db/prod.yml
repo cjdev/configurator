@@ -1,2 +1,3 @@
 ---
-host: expensive-server.example.com
+hosts:
+  - expensive-server.example.com

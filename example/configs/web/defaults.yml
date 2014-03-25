@@ -1,0 +1,5 @@
+---
+hosts:
+  - dev.example.com
+vars:
+  mount: /app

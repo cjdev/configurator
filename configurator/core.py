@@ -4,8 +4,7 @@ import yaml
 import json
 
 YAML_FORMATS = ["yml", "yaml"]
-BASE_CONFIG = "base"
-
+BASE_CONFIG = "defaults"
 
 def json_dumper(obj):
     return json.dumps(obj, sort_keys=True)

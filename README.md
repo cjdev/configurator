@@ -15,16 +15,16 @@ Configurator takes a directory structure defining configurations for named envir
 Given a directory structure like:
 
     configs
-    |-- base.yml
+    |-- defaults.yml
     |-- db
-    |   |-- base.yml
+    |   |-- defaults.yml
     |   |-- prod.yml
     |   `-- staging.yml
     `-- web
         |-- base.yml
         `-- prod.yml
 
-We can see configs named `base`, `prod`, and `staging`.
+We can see configs named `defaults`, `prod`, and `staging`.
 
 When the special config `base.yml` is found it provides default configuration for other configs to extend.
 Providing a base config or config mixins are optional.
@@ -34,14 +34,18 @@ If we ask for the configuration for staging we end up with a structure like:
 
 ```yaml
 
-db:
-  debug: true
-  host: affordable-server.example.com
-  port: 1337
 version: 0.0.1
+db:
+  hosts:
+    - affordable-server.example.com
+  vars:
+    port: 1337
+    debug: true
 web:
-  host: dev.example.com
-  mount: /app
+  hosts:
+    - dev.example.com
+  vars:
+    mount: /app
 
 ```
 

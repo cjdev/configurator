@@ -1,0 +1,5 @@
+---
+hosts:
+  - cheap-server.example.com
+vars:
+  port: 1337
